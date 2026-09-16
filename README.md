@@ -22,7 +22,7 @@ the TTL runs out.
 npm install
 cp .env.example .env   # set API_KEY at minimum
 npm start        # listens on :3000 (or $PORT)
-npm test         # vitest, 12 tests
+npm test         # vitest, 13 tests
 ```
 
 ## Auth
@@ -47,6 +47,7 @@ node -e "console.log(require('crypto').randomBytes(24).toString('hex'))"
 | `POST` | `/assertions/:id/reverify` | ✓ | Same operation as attest — resets the decay clock, keeps the prior record in `attestation.supersedes`. |
 | `POST` | `/assertions/:id/reject` | ✓ | A named human turns it down. Body: `{ by, role, reason, reviewed }`. Stays in the dataset, doesn't decay. |
 | `GET` | `/health` | | Liveness check. |
+| `GET` | `/` | | API description and endpoint list — human-friendly landing page, not a real resource. |
 
 ## Example
 
@@ -73,6 +74,22 @@ for local dev, gone on restart. Both implement the same four-method
 interface (`insert`/`get`/`replace`/`list`), selected in `src/store.js` and
 injected into `createApp({ store })` — swapping backends again means adding
 a new file in `src/stores/`, not touching the route layer.
+
+## Deployment
+
+Runs on [Railway](https://railway.com): this service plus a Postgres
+instance, wired together via `DATABASE_URL` (a Railway reference variable,
+`${{Postgres.DATABASE_URL}}`). `API_KEY` is set directly on the service.
+Health checks hit `/health`.
+
+Auto-deploy on push to `main` requires Railway's GitHub App to be properly
+**installed** on this repo, not just **authorized**. Those are two different
+things in GitHub's settings — authorization alone lets Railway act via API
+(manual redeploys work), but only an install registers the push webhook. Check
+at [github.com/settings/installations](https://github.com/settings/installations):
+if `attestation-api` (or "All repositories") isn't listed there under Railway,
+auto-deploy silently does nothing and every push needs a manual "Deploy" in
+the Railway dashboard, or `connect-service-source` via the Railway MCP tools.
 
 ## Where it came from
 
