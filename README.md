@@ -18,41 +18,59 @@ the TTL runs out.
 
 ```bash
 npm install
+cp .env.example .env   # set API_KEY at minimum
 npm start        # listens on :3000 (or $PORT)
-npm test         # vitest, 9 tests
+npm test         # vitest, 12 tests
+```
+
+## Auth
+
+Every write route (`POST /assertions`, `/attest`, `/reverify`, `/reject`)
+requires `Authorization: Bearer <API_KEY>`. Reads (`GET`) are public — the
+property worth protecting is who can write to the ledger, not who can read
+it. Generate a key with:
+
+```bash
+node -e "console.log(require('crypto').randomBytes(24).toString('hex'))"
 ```
 
 ## Endpoints
 
-| Method | Path | Does |
-|---|---|---|
-| `POST` | `/assertions` | Propose a value. Body: `{ payload, model, rationale }`. |
-| `GET` | `/assertions` | List all assertions, with a status tally. |
-| `GET` | `/assertions/:id` | Fetch one assertion. |
-| `POST` | `/assertions/:id/attest` | A named human signs it. Body: `{ by, role, basis, verified, ttlDays }`. Throws 400 without `by` and `basis`. |
-| `POST` | `/assertions/:id/reverify` | Same operation as attest — resets the decay clock, keeps the prior record in `attestation.supersedes`. |
-| `POST` | `/assertions/:id/reject` | A named human turns it down. Body: `{ by, role, reason, reviewed }`. Stays in the dataset, doesn't decay. |
-| `GET` | `/health` | Liveness check. |
+| Method | Path | Auth | Does |
+|---|---|---|---|
+| `POST` | `/assertions` | ✓ | Propose a value. Body: `{ payload, model, rationale }`. |
+| `GET` | `/assertions` | | List all assertions, with a status tally. |
+| `GET` | `/assertions/:id` | | Fetch one assertion. |
+| `POST` | `/assertions/:id/attest` | ✓ | A named human signs it. Body: `{ by, role, basis, verified, ttlDays }`. 400 without `by` and `basis`. |
+| `POST` | `/assertions/:id/reverify` | ✓ | Same operation as attest — resets the decay clock, keeps the prior record in `attestation.supersedes`. |
+| `POST` | `/assertions/:id/reject` | ✓ | A named human turns it down. Body: `{ by, role, reason, reviewed }`. Stays in the dataset, doesn't decay. |
+| `GET` | `/health` | | Liveness check. |
 
 ## Example
 
 ```bash
 curl -X POST localhost:3000/assertions \
   -H 'Content-Type: application/json' \
+  -H "Authorization: Bearer $API_KEY" \
   -d '{"payload":{"hpf":"IN","lf":-5},"model":"Claude","rationale":"bright-instrument pattern"}'
 # -> { "id": "...", "status": "proposed", ... }
 
 curl -X POST localhost:3000/assertions/<id>/attest \
   -H 'Content-Type: application/json' \
+  -H "Authorization: Bearer $API_KEY" \
   -d '{"by":"David Petry","role":"FOH engineer","basis":"Verified at the console","verified":"2026-08-27"}'
 # -> { "status": "attested", "daysRemaining": 730, ... }
 ```
 
 ## Storage
 
-Records live in an in-memory `Map` (`src/store.js`) — fine for a demo or a
-single-instance deployment, gone on restart. Swap in a real database by
-replacing that one file; the route layer only calls its exported functions.
+`DATABASE_URL` set → Postgres (`src/stores/postgresStore.js`), records
+persist across restarts and deploys, schema created automatically on first
+connection. Unset → an in-memory `Map` (`src/stores/memoryStore.js`), fine
+for local dev, gone on restart. Both implement the same four-method
+interface (`insert`/`get`/`replace`/`list`), selected in `src/store.js` and
+injected into `createApp({ store })` — swapping backends again means adding
+a new file in `src/stores/`, not touching the route layer.
 
 ## Where it came from
 

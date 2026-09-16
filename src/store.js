@@ -1,27 +1,10 @@
-import { randomUUID } from "node:crypto";
+import { createMemoryStore } from "./stores/memoryStore.js";
+import { createPostgresStore } from "./stores/postgresStore.js";
 
-// In-memory store. Swap for a real database when persistence across
-// restarts matters — the route layer only talks to this file's exports.
-const records = new Map();
-
-export function insert(record) {
-  const id = randomUUID();
-  records.set(id, record);
-  return id;
-}
-
-export function get(id) {
-  return records.get(id);
-}
-
-export function replace(id, record) {
-  records.set(id, record);
-}
-
-export function list() {
-  return [...records.entries()];
-}
-
-export function clear() {
-  records.clear();
+// DATABASE_URL present -> Postgres, persists across restarts and deploys.
+// Otherwise an in-memory Map -> fine for local dev, gone on restart.
+export function createDefaultStore() {
+  return process.env.DATABASE_URL
+    ? createPostgresStore(process.env.DATABASE_URL)
+    : createMemoryStore();
 }
