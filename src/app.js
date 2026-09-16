@@ -74,5 +74,22 @@ export function createApp({ store = createDefaultStore(), apiKey = process.env.A
 
   app.get("/health", (req, res) => res.json({ ok: true }));
 
+  app.get("/", (req, res) => {
+    res.json({
+      name: "attestation-api",
+      description: "REST API for attestation-ledger — human-in-the-loop provenance for AI-generated assertions",
+      repo: "https://github.com/davidpetry-cloud/attestation-api",
+      endpoints: [
+        "POST   /assertions",
+        "GET    /assertions",
+        "GET    /assertions/:id",
+        "POST   /assertions/:id/attest",
+        "POST   /assertions/:id/reverify",
+        "POST   /assertions/:id/reject",
+        "GET    /health",
+      ],
+    });
+  });
+
   return app;
 }

@@ -12,6 +12,15 @@ beforeEach(() => {
 
 const authed = (req) => req.set("Authorization", `Bearer ${API_KEY}`);
 
+describe("GET /", () => {
+  it("describes the API instead of 404ing", async () => {
+    const res = await request(app).get("/");
+    expect(res.status).toBe(200);
+    expect(res.body.name).toBe("attestation-api");
+    expect(res.body.endpoints).toContain("GET    /health");
+  });
+});
+
 describe("auth", () => {
   it("401s a write with no bearer token", async () => {
     const res = await request(app).post("/assertions").send({ payload: { a: 1 } });
