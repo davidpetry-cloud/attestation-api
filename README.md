@@ -1,5 +1,7 @@
 # attestation-api
 
+[![test](https://github.com/davidpetry-cloud/attestation-api/actions/workflows/test.yml/badge.svg)](https://github.com/davidpetry-cloud/attestation-api/actions/workflows/test.yml)
+
 A REST API for [`attestation-ledger`](https://www.npmjs.com/package/attestation-ledger) —
 human-in-the-loop provenance for AI-generated assertions, as a service instead
 of a library you have to `npm install`.
