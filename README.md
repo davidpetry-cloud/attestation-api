@@ -2,7 +2,9 @@
 
 [![test](https://github.com/davidpetry-cloud/attestation-api/actions/workflows/test.yml/badge.svg)](https://github.com/davidpetry-cloud/attestation-api/actions/workflows/test.yml)
 
-Live: [attestation-api-production-c3d9.up.railway.app](https://attestation-api-production-c3d9.up.railway.app)
+**Live demo: offline.** The free Railway trial ended in October 2026, and the
+API is moving to a free host. To try it now, run it locally (below); without
+`DATABASE_URL` it needs no database.
 
 A REST API for [`attestation-ledger`](https://www.npmjs.com/package/attestation-ledger) —
 human-in-the-loop provenance for AI-generated assertions, as a service instead
